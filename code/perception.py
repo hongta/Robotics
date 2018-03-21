@@ -85,6 +85,7 @@ def perception_step(Rover):
     # TODO: 
     # NOTE: camera image is coming to you in Rover.img
     # 1) Define source and destination points for perspective transform
+    img = Rover.img
     dst_size = 5 
     bottom_offset = 6
     source = np.float32([[14, 140], [301 ,140],[200, 96], [118, 96]])
@@ -105,9 +106,9 @@ def perception_step(Rover):
         # Example: Rover.vision_image[:,:,0] = obstacle color-thresholded binary image
         #          Rover.vision_image[:,:,1] = rock_sample color-thresholded binary image
         #          Rover.vision_image[:,:,2] = navigable terrain color-thresholded binary image
-    Rover.vision_image[:, :, 0] = obstacle_threshed
-    Rover.vision_image[:, :, 1] = rock_threshed
-    Rover.vision_image[:, :, 2] = threshed
+    Rover.vision_image[:, :, 0] = obstacle_threshed * 255
+    Rover.vision_image[:, :, 1] = rock_threshed * 255
+    Rover.vision_image[:, :, 2] = threshed * 255
     # 5) Convert map image pixel values to rover-centric coords
     xpix, ypix = rover_coords(threshed)
     obstacle_xpix, obstacle_ypix = rover_coords(obstacle_threshed)
@@ -115,10 +116,9 @@ def perception_step(Rover):
     
      
     # 6) Convert rover-centric pixel values to world coordinates
-    xpos = data.xpos[data.count]
-    ypos = data.ypos[data.count]
-    yaw  = data.yaw[data.count]
-    world_size = data.worldmap.shape[0]
+    xpos, ypos = Rover.pos
+    yaw  = Rover.yaw
+    world_size = Rover.worldmap.shape[0]
     scale = 10
     
     x_pix_world, y_pix_world = pix_to_world(xpix, ypix, xpos, ypos, yaw, world_size, scale)
@@ -129,9 +129,9 @@ def perception_step(Rover):
         # Example: Rover.worldmap[obstacle_y_world, obstacle_x_world, 0] += 1
         #          Rover.worldmap[rock_y_world, rock_x_world, 1] += 1
         #          Rover.worldmap[navigable_y_world, navigable_x_world, 2] += 1
-    data.worldmap[obstacle_y_pix_world, obstacle_x_pix_world, 0] += 1
-    data.worldmap[rock_y_pix_world, rock_x_pix_world, 1] +=1 
-    data.worldmap[y_pix_world, x_pix_world, 2] += 1
+    Rover.worldmap[obstacle_y_pix_world, obstacle_x_pix_world, 0] += 1
+    Rover.worldmap[rock_y_pix_world, rock_x_pix_world, 1] +=1 
+    Rover.worldmap[y_pix_world, x_pix_world, 2] += 1
     
     # 8) Convert rover-centric pixel positions to polar coordinates
     # Update Rover pixel distances and angles
